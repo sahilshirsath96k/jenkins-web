@@ -37,3 +37,61 @@ def deploy() {
         "--parameters file://deploy.json"
     )
 }
+
+pipeline {
+    agent any
+
+    environment {
+        REGION   = 'ap-south-1'
+        ACCOUNT  = '123456789012'
+        REPO     = 'hello-jenkins'
+        INSTANCE = 'none'
+
+        REGISTRY = "${ACCOUNT}.dkr.ecr.${REGION}.amazonaws.com"
+        IMG      = "${REPO}:${BUILD_NUMBER}"
+        REMOTE   = "${REGISTRY}/${REPO}:latest"
+    }
+
+    stages {
+        stage('Build') {
+            steps {
+                script {
+                    run "docker build -t ${IMG} ."
+                }
+            }
+        }
+
+        stage('Test') {
+            steps {
+                script {
+                    run "docker run --rm ${IMG} nginx -t"
+                }
+            }
+        }
+
+        stage('Push') {
+            steps {
+                script {
+                    ecrLogin()
+
+                    run "docker tag ${IMG} ${REMOTE}"
+                    run "docker push ${REMOTE}"
+                }
+            }
+        }
+
+        stage('Deploy') {
+            when {
+                not {
+                    environment name: 'INSTANCE', value: 'none'
+                }
+            }
+
+            steps {
+                script {
+                    deploy()
+                }
+            }
+        }
+    }
+}
