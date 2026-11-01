@@ -51,7 +51,7 @@ pipeline {
         REGION   = 'ap-south-1'
         ACCOUNT  = '469465348676'
         REPO     = 'jenkins-web'
-        INSTANCE = 'i-04e9eecd25ec854ec'
+        INSTANCE = 'NONE'
 
         REGISTRY = "${ACCOUNT}.dkr.ecr.${REGION}.amazonaws.com"
         IMG      = "${REPO}:${BUILD_NUMBER}"
