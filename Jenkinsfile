@@ -1,4 +1,3 @@
-
 def run(cmd) {
     if (isUnix()) {
         sh cmd
@@ -24,13 +23,8 @@ def ecrLogin() {
 }
 
 def deploy() {
-    if (!env.INSTANCE?.trim() ||
-        env.INSTANCE.trim().equalsIgnoreCase('none')) {
-        error("Invalid EC2 instance ID: ${env.INSTANCE}")
-    }
-
     if (!fileExists('deploy.json')) {
-        error("deploy.json not found in Jenkins workspace. Add it to the GitHub repository root.")
+        error("deploy.json not found in Jenkins workspace.")
     }
 
     echo "Deploying to EC2 instance: ${env.INSTANCE}"
@@ -93,6 +87,12 @@ pipeline {
         }
 
         stage('Deploy') {
+            when {
+                expression {
+                    return env.INSTANCE?.trim() &&
+                           !env.INSTANCE.trim().equalsIgnoreCase('NONE')
+                }
+            }
             steps {
                 script {
                     deploy()
