@@ -1,5 +1,10 @@
 {
   "commands": [
-    "set -e; aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 469465348676.dkr.ecr.ap-south-1.amazonaws.com; docker pull 469465348676.dkr.ecr.ap-south-1.amazonaws.com/jenkins-web:latest; docker rm -f jenkins-web || true; docker run -d --name jenkins-web --restart unless-stopped -p 80:80 469465348676.dkr.ecr.ap-south-1.amazonaws.com/jenkins-web:latest; docker ps --filter name=jenkins-web"
+    "set -e",
+    "aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 469465348676.dkr.ecr.ap-south-1.amazonaws.com",
+    "docker pull 469465348676.dkr.ecr.ap-south-1.amazonaws.com/jenkins-web:latest",
+    "docker rm -f jenkins-web || true",
+    "docker run -d --name jenkins-web --restart unless-stopped -p 80:80 469465348676.dkr.ecr.ap-south-1.amazonaws.com/jenkins-web:latest",
+    "docker ps --filter name=jenkins-web"
   ]
 }
