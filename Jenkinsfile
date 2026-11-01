@@ -1,4 +1,4 @@
-
+```groovy
 def run(cmd) {
     if (isUnix()) {
         sh cmd
@@ -9,14 +9,8 @@ def run(cmd) {
 
 def awsRun(cmd) {
     withCredentials([
-        string(
-            credentialsId: 'aws-key-id',
-            variable: 'AWS_ACCESS_KEY_ID'
-        ),
-        string(
-            credentialsId: 'aws-secret',
-            variable: 'AWS_SECRET_ACCESS_KEY'
-        )
+        string(credentialsId: 'aws-key-id', variable: 'AWS_ACCESS_KEY_ID'),
+        string(credentialsId: 'aws-secret', variable: 'AWS_SECRET_ACCESS_KEY')
     ]) {
         run(cmd)
     }
@@ -30,12 +24,24 @@ def ecrLogin() {
 }
 
 def deploy() {
-    awsRun(
-        "aws ssm send-command --region ${env.REGION} " +
-        "--instance-ids ${env.INSTANCE} " +
-        "--document-name AWS-RunShellScript " +
-        "--parameters file://deploy.json"
-    )
+    if (!env.INSTANCE?.trim() ||
+        env.INSTANCE.trim().equalsIgnoreCase('none')) {
+        error("Invalid EC2 instance ID: ${env.INSTANCE}")
+    }
+
+    if (!fileExists('deploy.json')) {
+        error("deploy.json not found in Jenkins workspace. Add it to the GitHub repository root.")
+    }
+
+    echo "Deploying to EC2 instance: ${env.INSTANCE}"
+
+    awsRun("""
+        aws ssm send-command \
+          --region ${env.REGION} \
+          --instance-ids ${env.INSTANCE} \
+          --document-name AWS-RunShellScript \
+          --parameters file://deploy.json
+    """)
 }
 
 pipeline {
@@ -53,6 +59,13 @@ pipeline {
     }
 
     stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+                sh 'pwd && ls -la'
+            }
+        }
+
         stage('Build') {
             steps {
                 script {
@@ -73,7 +86,6 @@ pipeline {
             steps {
                 script {
                     ecrLogin()
-
                     run "docker tag ${IMG} ${REMOTE}"
                     run "docker push ${REMOTE}"
                 }
@@ -81,12 +93,6 @@ pipeline {
         }
 
         stage('Deploy') {
-            when {
-                not {
-                    environment name: 'INSTANCE', value: 'none'
-                }
-            }
-
             steps {
                 script {
                     deploy()
@@ -95,3 +101,4 @@ pipeline {
         }
     }
 }
+```
