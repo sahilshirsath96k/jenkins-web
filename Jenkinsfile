@@ -44,7 +44,7 @@ pipeline {
     environment {
         REGION   = 'ap-south-1'
         ACCOUNT  = '123456789012'
-        REPO     = 'hello-jenkins'
+        REPO     = 'jenkins-web'
         INSTANCE = 'none'
 
         REGISTRY = "${ACCOUNT}.dkr.ecr.${REGION}.amazonaws.com"
